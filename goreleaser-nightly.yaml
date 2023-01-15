@@ -28,8 +28,7 @@ builds:
       - -X main.version={{.Version}}-{{.ShortCommit}}
       - -X main.commit={{.Commit}} -X main.date={{time "2006-01-02"}} -X main.builtBy=goreleaser
     goos: [linux]
-#    goarch: ['386', arm, amd64, arm64, s390x, ppc64le]
-    goarch: [amd64]
+    goarch: ['386', arm, amd64, arm64, s390x, ppc64le]
     env:
       - CGO_ENABLED=0
 
