@@ -1,0 +1,45 @@
+name: Release nightly snap of upstream project
+
+on:
+  workflow_dispatch:  # Allow manual run
+  schedule:
+    - cron: "0 6 * * *"  # Every day at 06:00 UTC
+
+permissions:
+  contents: write
+  packages: write
+  issues: write
+
+jobs:
+  Release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Snapcraft in background
+        run: sudo snap install --no-wait --classic snapcraft
+      - name: Checkout cli repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          repository: cli/cli
+      - name: Fetch cli tags
+        run: git fetch --force --tags
+      - name: Checkout gh-snap repo
+        uses: actions/checkout@v3
+        with:
+          path: snapcrafters
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.19.5'
+          cache: true
+      - name: Ensure Snapcraft install is completed
+        run: snap watch --last=install
+      # More assembly might be required: Docker logins, GPG, etc. It all depends
+      # on your needs.
+      - uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --skip-announce --skip-validate --rm-dist --config snapcrafters/goreleaser-nightly.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          GORELEASER_CURRENT_TAG: ${{steps.changelog.outputs.tag-name}}
