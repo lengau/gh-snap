@@ -27,8 +27,11 @@ jobs:
           echo "GORELEASER_CURRENT_TAG=$(git describe --tags)" >> $GITHUB_ENV
       - name: Check for existing release
         run: |  # https://github.com/actions/runner/issues/662
-          if ! gh api repos/$GITHUB_REPOSITORY/releases/$(git describe --tags) > /dev/null; then
+          if ! gh api repos/$GITHUB_REPOSITORY/releases/tags/$(git describe --tags) > /dev/null; then
             echo RELEASE=TRUE >> $GITHUB_ENV
+            echo No release found at $(git describe --tags). Continuing release.
+          else
+            echo Existing release found. Cancelling
           fi
         env:
           GH_TOKEN: ${{ github.token }}
