@@ -33,6 +33,14 @@ jobs:
           cache: true
       - name: Ensure Snapcraft install is completed
         run: snap watch --last=install
+      - name: Work around pyxdg race condition
+        # Relevant bugs and PR:
+        # https://gitlab.freedesktop.org/xdg/pyxdg/-/merge_requests/14
+        # https://bugs.launchpad.net/snapcraft/+bug/1889741
+        # https://github.com/goreleaser/goreleaser/issues/1715
+        run: | 
+          mkdir -p $HOME/.cache/snapcraft/download
+          mkdir -p $HOME/.cache/snapcraft/stage-packages
       # More assembly might be required: Docker logins, GPG, etc. It all depends
       # on your needs.
       - uses: goreleaser/goreleaser-action@v4
