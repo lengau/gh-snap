@@ -21,8 +21,10 @@ jobs:
         with:
           fetch-depth: 0
           repository: cli/cli
-      - name: Fetch cli tags
-        run: git fetch --force --tags
+      - name: Fetch cli tags and set full release name
+        run: |
+          git fetch --force --tags
+          echo "GORELEASER_CURRENT_TAG=$(git describe --tags)" >> $GITHUB_ENV
       - name: Checkout gh-snap repo
         uses: actions/checkout@v3
         with:
@@ -50,4 +52,4 @@ jobs:
           args: release --skip-announce --skip-validate --rm-dist --config snapcrafters/goreleaser-nightly.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          GORELEASER_CURRENT_TAG: ${{steps.changelog.outputs.tag-name}}
+          GORELEASER_CURRENT_TAG: ${{ env.GORELEASER_CURRENT_TAG }}

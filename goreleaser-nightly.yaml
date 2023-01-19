@@ -2,7 +2,7 @@ project_name: gh
 
 release:
   prerelease: true
-  name_template: 'GitHub CLI nightly {{.Version}}-{{.ShortCommit}}'
+  name_template: 'GitHub CLI nightly {{.Version}}'
   mode: replace
   extra_files:
     - glob: dist/*.snap
@@ -22,11 +22,11 @@ builds:
     main: ./cmd/gh
     ldflags:
       # - -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser`.
-      - -s -w -X github.com/cli/cli/v2/internal/build.Version={{.Version}}-{{.ShortCommit}}
-      - -X github.com/cli/cli/v2/internal/build.Date={{time "2006-01-02"}}
+      - -s -w -X github.com/cli/cli/v2/internal/build.Version={{.Version}}
+      - -X github.com/cli/cli/v2/internal/build.Date={{ .CommitDate }}
       - -X main.updaterEnabled=cli/cli
-      - -X main.version={{.Version}}-{{.ShortCommit}}
-      - -X main.commit={{.Commit}} -X main.date={{time "2006-01-02"}} -X main.builtBy=goreleaser
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}} -X main.date={{ .CommitDate }} -X main.builtBy=goreleaser
     goos: [linux]
     goarch: ['386', arm, amd64, arm64, s390x, ppc64le]
     env:
@@ -38,11 +38,11 @@ archives:
     rlcp: true
     files:
     - LICENSE
-    name_template: '{{ .ProjectName }}_{{.Version}}-{{.ShortCommit}}_{{ .Os }}_{{ .Arch }}'
+    name_template: '{{ .ProjectName }}_{{.Version}}_{{ .Os }}_{{ .Arch }}'
 
 snapcrafts:
   - id: snaps
-    name_template: '{{ .ProjectName }}_{{.Version}}-{{.ShortCommit}}_{{ .Os }}_{{ .Arch }}'
+    name_template: '{{ .ProjectName }}_{{.Version}}_{{ .Os }}_{{ .Arch }}'
     publish: false
     channel_templates:
       - edge
