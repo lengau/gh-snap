@@ -25,17 +25,28 @@ jobs:
         run: |
           git fetch --force --tags
           echo "GORELEASER_CURRENT_TAG=$(git describe --tags)" >> $GITHUB_ENV
+      - name: Check for existing release
+        run: |  # https://github.com/actions/runner/issues/662
+          if ! gh api repos/$GITHUB_REPOSITORY/releases/$(git describe --tags) > /dev/null; then
+            echo RELEASE=TRUE >> $GITHUB_ENV
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Checkout gh-snap repo
+        if: ${{ env.RELEASE }} == 'TRUE'  # https://github.com/actions/runner/issues/662
         uses: actions/checkout@v3
         with:
           path: snapcrafters
       - uses: actions/setup-go@v3
+        if: ${{ env.RELEASE }} == 'TRUE'
         with:
           go-version: '>=1.19.5'
           cache: true
       - name: Ensure Snapcraft install is completed
+        if: ${{ env.RELEASE }} == 'TRUE'
         run: snap watch --last=install
       - name: Work around pyxdg race condition
+        if: ${{ env.RELEASE }} == 'TRUE'
         # Relevant bugs and PR:
         # https://gitlab.freedesktop.org/xdg/pyxdg/-/merge_requests/14
         # https://bugs.launchpad.net/snapcraft/+bug/1889741
@@ -46,6 +57,7 @@ jobs:
       # More assembly might be required: Docker logins, GPG, etc. It all depends
       # on your needs.
       - uses: goreleaser/goreleaser-action@v4
+        if: ${{ env.RELEASE }} == 'TRUE'
         with:
           distribution: goreleaser
           version: latest
