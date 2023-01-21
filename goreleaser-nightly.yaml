@@ -55,7 +55,7 @@ snapcrafts:
         - `gh pr [status, list, view, checkout, create]`
         - `gh issue [status, list, view, create]`
         - `gh help`
-    grade: stable
+    grade: devel
     confinement: classic
     license: MIT
     base: bare  # This is a statically-linked binary - all dependencies exist outside of the snap.
