@@ -1,0 +1,44 @@
+name: gh
+summary: Unofficial Snap package for GitHub-CLI
+description: |
+  https://cli.github.com
+  **`gh` - The GitHub CLI tool**
+  `gh` is GitHub on the command line, and it's now available in beta. It brings pull requests, issues, and other GitHub concepts to
+  the terminal next to where you are already working with `git` and your code.
+  _Usage_
+  - `gh pr [status, list, view, checkout, create]`
+  - `gh issue [status, list, view, create]`
+  - `gh help`
+version: git
+contact: https://github.com/lengau/gh-snap
+issues: https://github.com/lengau/gh-snap/issues
+source-code: https://github.com/lengau/gh-snap
+website: https://cli.github.com
+grade: stable
+confinement: classic
+base: bare
+build-base: core18
+license: MIT
+architectures: [amd64, i386, arm64, armhf]
+parts:
+  bin:
+    plugin: dump
+    source:
+      - on amd64: https://github.com/cli/cli/releases/download/v2.21.2/gh_2.21.2_linux_amd64.tar.gz
+      - on i386: https://github.com/cli/cli/releases/download/v2.21.2/gh_2.21.2_linux_386.tar.gz
+      - on armhf: https://github.com/cli/cli/releases/download/v2.21.2/gh_2.21.2_linux_armv6.tar.gz
+      - on arm64: https://github.com/cli/cli/releases/download/v2.21.2/gh_2.21.2_linux_arm64.tar.gz
+    source-type: tar
+    stage:
+      - bin/gh
+      - LICENSE
+  completion:
+    plugin: dump
+    source: .
+    source-type: local
+    stage:
+      - completion.sh
+apps:
+  gh:
+    command: bin/gh
+    completer: completion.sh
