@@ -11,7 +11,7 @@ permissions:
   issues: write
 
 jobs:
-  get_releases:
+  releases:
     runs-on: ubuntu-latest
     outputs:
       releases: ${{ steps.releases.outputs.RELEASES }}
@@ -38,9 +38,8 @@ jobs:
           UPSTREAM: cli/cli
           CHECK_N: 5
   commit_and_tag:
-    needs: get_releases
-    strategy:
-      runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
+    needs: [releases]
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
