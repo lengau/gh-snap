@@ -46,6 +46,8 @@ jobs:
       with:
         fetch-depth: 0
     - name: Commit releases
+      env:
+        GH_TOKEN: ${{ github.token }}
       run: |
         git fetch --force --tags
         git config user.name 'Release Action'
