@@ -31,7 +31,7 @@ jobs:
             done
           }
           
-          export RELEASES="'$(get_unmatched_releases $UPSTREAM $CHECK_N $GITHUB_REPOSITORY)'"
+          export RELEASES="$(get_unmatched_releases $UPSTREAM $CHECK_N $GITHUB_REPOSITORY)"
           echo "RELEASES=$RELEASES" | tee $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ github.token }}
