@@ -71,7 +71,7 @@ jobs:
           ./gh completion -s bash > completion.sh
           rm gh
           echo "Committing and tagging release ${release}..."
-          git add completion.sh snap/snapcraft.yml
+          git add completion.sh snap/snapcraft.yaml
           git commit -m "Release version ${release}"
           git tag -f ${release}
           echo "::endgroup::"
