@@ -50,18 +50,28 @@ jobs:
         git fetch --force --tags
         git config user.name 'Release Action'
         git config user.email 'gh-snap-release-action@actions.github.com'
-        for release in ${{needs.get_releases.outputs.releases}}
+        echo "Releases to commit: ${{needs.releases.outputs.releases}}"
+        for release in ${{needs.releases.outputs.releases}}
         do
+          echo "::group:: Release ${release}:"
           $(gh api repos/cli/cli/releases/tags/${release} -q '.assets.[].browser_download_url|match(".*linux_([a-z0-9]*).tar.gz") | "export ARCH_" + .captures[0].string + "=" + .string' | sed s/386/i386/)
+          echo Release file URLs retrieved:
+          env|grep ARCH_
+          echo "Setting snapcraft version..."
           sed -i 's/^\(version: \).*$/\1'"${release}"'/' snap/snapcraft.yaml
+          grep version: snap/snapcraft.yaml
+          echo "Updating release files in snapcraft.yaml..."
           sed -i -e 's!^\(\s*- on amd64: \).*$!\1'"${ARCH_amd64}"'!' -e 's!^\(\s*- on i386: \).*$!\1'"${ARCH_i386}"'!' -e 's!^\(\s*- on armhf: \).*$!\1'"${ARCH_armv6}"'!' -e 's!^\(\s*- on arm64: \).*$!\1'"${ARCH_arm64}"'!' snap/snapcraft.yaml
-          git add snap/snapcraft.yml
+          grep '- on ' snap/snapcraft.yaml
+          echo "Setting up completion..."
           wget -O - $ARCH_amd64 | tar zx --wildcards "*bin/gh" -O > gh
           chmod +x gh
           ./gh completion -s bash > completion.sh
           rm gh
-          git add completion.sh
+          echo "Committing and tagging release ${release}..."
+          git add completion.sh snap/snapcraft.yml
           git commit -m "Release version ${release}"
           git tag -f ${release}
+          echo "::endgroup::"
         done
-        git push --tags
+        git push --tags --verbose
