@@ -76,8 +76,15 @@ jobs:
           sed -i 's/^\(version: \).*$/\1'"${release}"'/' snap/snapcraft.yaml
           grep version: snap/snapcraft.yaml
           echo "Updating release files in snapcraft.yaml..."
-          sed -i -e 's!^\(\s*- on amd64: \).*$!\1'"${ARCH_amd64}"'!' -e 's!^\(\s*- on i386: \).*$!\1'"${ARCH_i386}"'!' -e 's!^\(\s*- on armhf: \).*$!\1'"${ARCH_armv6}"'!' -e 's!^\(\s*- on arm64: \).*$!\1'"${ARCH_arm64}"'!' snap/snapcraft.yaml
-          grep  -e '- on ' snap/snapcraft.yaml
+          echo "::debug::amd64"
+          sed -i -e 's!^\(\s*- on amd64: \).*$!\1'"${ARCH_amd64}"'!' snap/snapcraft.yaml 
+          echo "::debug::i386"
+          sed -i -e 's!^\(\s*- on i386: \).*$!\1'"${ARCH_i386}"'!' snap/snapcraft.yaml
+          echo "::debug::armhf"
+          sed -i -e 's!^\(\s*- on armhf: \).*$!\1'"${ARCH_armv6}"'!' snap/snapcraft.yaml
+          echo "::debug::arm64"
+          sed -i -e 's!^\(\s*- on arm64: \).*$!\1'"${ARCH_arm64}"'!' snap/snapcraft.yaml
+          grep  -e '- to ' snap/snapcraft.yaml
           echo "Setting up completion..."
           wget -O - $ARCH_amd64 | tar zx --wildcards "*bin/gh" -O > gh
           chmod +x gh
