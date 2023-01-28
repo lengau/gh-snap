@@ -9,7 +9,7 @@ description: |
   - `gh pr [status, list, view, checkout, create]`
   - `gh issue [status, list, view, create]`
   - `gh help`
-version: v2.21.0-pre.5
+version: v2.21.0
 contact: https://github.com/lengau/gh-snap
 issues: https://github.com/lengau/gh-snap/issues
 source-code: https://github.com/lengau/gh-snap
