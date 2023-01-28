@@ -94,6 +94,7 @@ jobs:
           git add completion.sh snap/snapcraft.yaml
           git commit -m "Release version ${release}"
           git tag -f ${release}
+          git push --tags --verbose
+          gh workflow run release-tag.yaml --ref ${release}
           echo "::endgroup::"
         done
-        git push --tags --verbose

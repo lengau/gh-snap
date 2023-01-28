@@ -6,10 +6,11 @@ on:
       - v*
   workflow_dispatch:
     inputs:
-      tag_name:
-        description: "The tag to release"
+      tag_me:
+        description: "Don't forget to select a tag"
         required: true
-        type: string
+        type: bool
+        default: false
 
 permissions:
   contents: write
@@ -19,8 +20,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: ${{ inputs.tag_name || github.ref_name }}
       - uses: snapcore/action-build@v1
         id: snapcraft
       - name: Release
