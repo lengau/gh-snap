@@ -59,6 +59,19 @@ jobs:
           $(gh api repos/cli/cli/releases/tags/${release} -q '.assets.[].browser_download_url|match(".*linux_([a-z0-9]*).tar.gz") | "export ARCH_" + .captures[0].string + "=" + .string' | sed s/386/i386/)
           echo Release file URLs retrieved:
           env|grep ARCH_
+          if [[ $(git tag -l "${release}") ]]
+          then
+            echo "::warning::Tag ${release} already exists, renaming..."
+            snap_iteration=0
+            new_release="${release}-snap${snap_iteration}"
+            while git tag -l "${release}"
+            do
+              snap_iteration=$(($snap_iteration + 1))
+              new_release="${release}-snap${snap_iteration}"
+            done
+            release="${new_release}"
+            echo "Release renamed to ${release}"
+          fi
           echo "Setting snapcraft version..."
           sed -i 's/^\(version: \).*$/\1'"${release}"'/' snap/snapcraft.yaml
           grep version: snap/snapcraft.yaml
