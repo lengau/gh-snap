@@ -40,12 +40,15 @@ jobs:
   commit_and_tag:
     runs-on: ubuntu-latest
     needs: [releases]
+    outputs:
+      releases: ${{ steps.release_tags.outputs.releases }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
       with:
         fetch-depth: 0
     - name: Commit releases
+      id: release_tags
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
@@ -53,6 +56,7 @@ jobs:
         git config user.name 'Release Action'
         git config user.email 'gh-snap-release-action@actions.github.com'
         echo "Releases to commit: ${{needs.releases.outputs.releases}}"
+        echo -n "releases=" >> $GITHUB_OUTPUT 
         for release in ${{needs.releases.outputs.releases}}
         do
           echo "::group:: Release ${release}:"
@@ -94,7 +98,24 @@ jobs:
           git add completion.sh snap/snapcraft.yaml
           git commit -m "Release version ${release}"
           git tag -f ${release}
-          git push --tags --verbose
-          gh workflow run release-tag.yaml --ref ${release}
+          echo -n "${release}" >> $GITHUB_OUTPUT
           echo "::endgroup::"
         done
+        echo >> $GITHUB_OUTPUT
+        git push --tags --verbose
+  do_releases:
+    runs-on: ubuntu-latest
+    needs: commit_and_tag
+    strategy:
+      matrix:
+        tag: ${{ needs.commit_and_tag.outputs.releases }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ matrix.tag }}
+      - uses: snapcore/action-build@v1
+        id: snapcraft
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "*.snap"
