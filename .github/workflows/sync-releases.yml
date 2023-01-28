@@ -38,7 +38,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           UPSTREAM: cli/cli
-          CHECK_N: 5
+          CHECK_N: 10
   commit_and_tag:
     runs-on: ubuntu-latest
     needs: [releases]
@@ -55,6 +55,7 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: |
         git fetch --force --tags
+        git checkout main
         git config user.name 'Release Action'
         git config user.email 'gh-snap-release-action@actions.github.com'
         echo "Releases to commit: ${{needs.releases.outputs.releases}}"
