@@ -1,0 +1,31 @@
+name: Release on a tag
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+    inputs:
+      tag_me:
+        description: "Don't forget to select a tag"
+        required: true
+        type: bool
+        default: false
+  workflow_call:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: snapcore/action-build@v1
+        id: snapcraft
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: "*.snap"
+
+

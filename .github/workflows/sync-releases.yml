@@ -13,10 +13,10 @@ permissions:
   issues: write
 
 jobs:
-  get_releases:
+  releases:
     runs-on: ubuntu-latest
     outputs:
-      releases: ${{ steps.releases.outputs.releases }}
+      releases: ${{ steps.releases.outputs.RELEASES }}
     steps:
       - name: Determine releases to package
         id: releases
@@ -28,25 +28,22 @@ jobs:
             do
               if ! check_release_tag ${3} $release
               then
-                echo -n "${{ matrix.tag }}, "
+                echo -n "${release} "
               fi
             done
           }
           
           export RELEASES="$(get_unmatched_releases $UPSTREAM $CHECK_N $GITHUB_REPOSITORY)"
-          echo "releases=[$RELEASES]" | tee $GITHUB_OUTPUT
+          echo "RELEASES=$RELEASES" | tee $GITHUB_OUTPUT
         env:
           GH_TOKEN: ${{ github.token }}
           UPSTREAM: cli/cli
           CHECK_N: 10
-  commit_tag_release:
+  commit_and_tag:
     runs-on: ubuntu-latest
-    needs: [get_releases]
-    strategy:
-      max-parallel: 1
-      fail-fast: false  # Do each release regardless of another succeeds.
-      matrix:
-        tag: ${{ fromJSON(needs.get_releases.outputs.releases) }}
+    needs: [releases]
+    outputs:
+      releases: ${{ steps.release_tags.outputs.releases }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
@@ -58,36 +55,75 @@ jobs:
         GH_TOKEN: ${{ github.token }}
       run: |
         git fetch --force --tags
+        git checkout main
         git config user.name 'Release Action'
         git config user.email 'gh-snap-release-action@actions.github.com'
-        if [[ $(git tag -l "${{ matrix.tag }}") ]]
-        then
-          echo "::error::Tag ${{ matrix.tag }} already exists."
-          exit 1
-        fi
-        echo "Setting snapcraft version..."
-        sed -i 's/^\(version: \).*$/\1'"${{ matrix.tag }}"'/' snap/snapcraft.yaml
-        grep version: snap/snapcraft.yaml
-        echo "Updating release files in snapcraft.yaml..."
-        echo "::debug::Getting release json..."
-        gh api repos/cli/cli/releases/tags/${{ matrix.tag }} -q '.assets.[].browser_download_url|match(".*linux_([a-z0-9]*).tar.gz") | "s!^\\\\(\\\\s*- to " + .captures[0].string + ": \\\\).*$!\\\\1" + .string + "!"' | sed -e 's/386:/i386:/' -e 's/armv6:/armhf:/' | xargs -I{} sed -i -e {} snap/snapcraft.yaml
-        echo "Setting up completion..."
-        wget -nv -O - $(gh api repos/cli/cli/releases/tags/${{ matrix.tag }} -q '.assets.[].browser_download_url' |grep linux_amd64.tar.gz) | tar zx --wildcards "*bin/gh" -O > gh
-        chmod +x gh
-        ./gh completion -s bash > completion.sh
-        rm gh
-        echo "Committing and tagging release ${{ matrix.tag }}..."
-        git add completion.sh snap/snapcraft.yaml
-        git commit -m "Release version ${{ matrix.tag }}"
-        git tag -f ${{ matrix.tag }}
-        git push --all --verbose
-    - uses: snapcore/action-build@v1
-      id: snapcraft
-    - name: Release
-      uses: softprops/action-gh-release@v1
-      with:
-        name: GitHub CLI $${{ matrix.tag }}
-        body: See upstream release at https://github.com/cli/cli/releases/tag/${{ matrix.tag }}
-        prerelease: ${{ contains(matrix.tag, 'pre') }}
-        tag_name: ${{ matrix.tag }}
-        files: "*.snap"
+        echo "Releases to commit: ${{needs.releases.outputs.releases}}"
+        echo -n "releases=[ " >> $GITHUB_OUTPUT 
+        for release in ${{needs.releases.outputs.releases}}
+        do
+          echo "::group:: Release ${release}:"
+          $(gh api repos/cli/cli/releases/tags/${release} -q '.assets.[].browser_download_url|match(".*linux_([a-z0-9]*).tar.gz") | "export ARCH_" + .captures[0].string + "=" + .string' | sed s/386/i386/)
+          echo Release file URLs retrieved:
+          env|grep ARCH_
+          if [[ $(git tag -l "${release}") ]]
+          then
+            echo "::warning::Tag ${release} already exists, renaming..."
+            snap_iteration=0
+            new_release="${release}-snap${snap_iteration}"
+            while [[ $(git tag -l "${new_release}") ]]
+            do
+              snap_iteration=$(($snap_iteration + 1))
+              new_release="${release}-snap${snap_iteration}"
+            done
+            release="${new_release}"
+            echo "Release renamed to ${release}"
+          fi
+          echo "Setting snapcraft version..."
+          sed -i 's/^\(version: \).*$/\1'"${release}"'/' snap/snapcraft.yaml
+          grep version: snap/snapcraft.yaml
+          echo "Updating release files in snapcraft.yaml..."
+          echo "::debug::amd64"
+          sed -i -e 's!^\(\s*- on amd64: \).*$!\1'"${ARCH_amd64}"'!' snap/snapcraft.yaml 
+          echo "::debug::i386"
+          sed -i -e 's!^\(\s*- on i386: \).*$!\1'"${ARCH_i386}"'!' snap/snapcraft.yaml
+          echo "::debug::armhf"
+          sed -i -e 's!^\(\s*- on armhf: \).*$!\1'"${ARCH_armv6}"'!' snap/snapcraft.yaml
+          echo "::debug::arm64"
+          sed -i -e 's!^\(\s*- on arm64: \).*$!\1'"${ARCH_arm64}"'!' snap/snapcraft.yaml
+          grep  -e '- to ' snap/snapcraft.yaml
+          echo "Setting up completion..."
+          wget -nv -O - $ARCH_amd64 | tar zx --wildcards "*bin/gh" -O > gh
+          chmod +x gh
+          ./gh completion -s bash > completion.sh
+          rm gh
+          echo "Committing and tagging release ${release}..."
+          git add completion.sh snap/snapcraft.yaml
+          git commit -m "Release version ${release}"
+          git tag -f ${release}
+          echo -n "'${release}', " >> $GITHUB_OUTPUT
+          echo "::endgroup::"
+        done
+        echo ' ]' >> $GITHUB_OUTPUT
+        git push --tags --verbose
+  do_releases:
+    runs-on: ubuntu-latest
+    needs: commit_and_tag
+    strategy:
+      max-parallel: 1
+      matrix:
+        tag: ${{ fromJSON(needs.commit_and_tag.outputs.releases) }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ matrix.tag }}
+      - uses: snapcore/action-build@v1
+        id: snapcraft
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: GitHub CLI $${{ matrix.tag }}
+          body: See upstream release at https://github.com/cli/cli/releases/tag/${{ matrix.tag }}
+          prerelease: ${{ contains(matrix.tag, 'pre') }}
+          tag_name: ${{ matrix.tag }}
+          files: "*.snap"
