@@ -19,7 +19,7 @@ jobs:
       - name: Determine releases to package
         id: releases
         run: |
-          get_releases() { gh api "repos/${1}/releases?per_page=${2}&page=2" -q '.[].tag_name' | tac; }
+          get_releases() { gh api "repos/${1}/releases?per_page=${2}&page=1" -q '.[].tag_name' | tac; }
           check_release_tag() { gh api "repos/${1}/releases/tags/${2}" >> /dev/null 2>&1; }
           get_unmatched_releases() {
             for release in $(get_releases ${1} ${2})
