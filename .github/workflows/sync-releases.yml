@@ -92,7 +92,7 @@ jobs:
           sed -i -e 's!^\(\s*- on arm64: \).*$!\1'"${ARCH_arm64}"'!' snap/snapcraft.yaml
           grep  -e '- to ' snap/snapcraft.yaml
           echo "Setting up completion..."
-          wget -O - $ARCH_amd64 | tar zx --wildcards "*bin/gh" -O > gh
+          wget -nv -O - $ARCH_amd64 | tar zx --wildcards "*bin/gh" -O > gh
           chmod +x gh
           ./gh completion -s bash > completion.sh
           rm gh
