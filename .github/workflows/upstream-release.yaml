@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   sync-gh-releases:
-    uses: lengau/snappify/.github/workflows/sync-gh-releases.yaml@sync-gh-releases
+    uses: lengau/snappify/.github/workflows/sync-gh-releases.yaml@v0.0.2
     with:
       upstream_repository: cli/cli
       prep_script: tools/prep_release.sh
