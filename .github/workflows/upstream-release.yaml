@@ -21,6 +21,7 @@ jobs:
   do_releases:
     runs-on: ubuntu-latest
     needs: sync-gh-releases
+    if: ${{ needs.sync-gh-releases.outputs.release_tags != '[]' && needs.sync-gh-releases.outputs.services != '' }}
     strategy:
       max-parallel: 1
       matrix:
