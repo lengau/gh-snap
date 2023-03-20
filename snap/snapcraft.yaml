@@ -9,7 +9,7 @@ description: |
   - `gh pr [status, list, view, checkout, create]`
   - `gh issue [status, list, view, create]`
   - `gh help`
-version: v2.24.0-rerelease10
+version: v2.24.2-rerelease9
 contact: https://github.com/lengau/gh-snap
 issues: https://github.com/lengau/gh-snap/issues
 source-code: https://github.com/lengau/gh-snap
@@ -33,10 +33,10 @@ parts:
   bin:
     plugin: dump
     source:
-      - to i386: https://github.com/cli/cli/releases/download/v2.24.0/gh_2.24.0_linux_386.tar.gz
-      - to amd64: https://github.com/cli/cli/releases/download/v2.24.0/gh_2.24.0_linux_amd64.tar.gz
-      - to arm64: https://github.com/cli/cli/releases/download/v2.24.0/gh_2.24.0_linux_arm64.tar.gz
-      - to armhf: https://github.com/cli/cli/releases/download/v2.24.0/gh_2.24.0_linux_armv6.tar.gz
+      - to i386: https://github.com/cli/cli/releases/download/v2.24.2/gh_2.24.2_linux_386.tar.gz
+      - to amd64: https://github.com/cli/cli/releases/download/v2.24.2/gh_2.24.2_linux_amd64.tar.gz
+      - to arm64: https://github.com/cli/cli/releases/download/v2.24.2/gh_2.24.2_linux_arm64.tar.gz
+      - to armhf: https://github.com/cli/cli/releases/download/v2.24.2/gh_2.24.2_linux_armv6.tar.gz
     # endsources
     source-type: tar
     stage:
