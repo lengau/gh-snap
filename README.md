@@ -1,3 +1,8 @@
+# ARCHIVED
+
+Please see recent work at https://github.com/casperdcl/cli
+
+
 **This is an unofficial snap package for [GitHub CLI](https://github.com/cli/cli).**
 
 [![Snap upstream releases](https://github.com/lengau/gh-snap/actions/workflows/upstream-release.yaml/badge.svg)](https://github.com/lengau/gh-snap/actions/workflows/upstream-release.yaml)
